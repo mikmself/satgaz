@@ -7,9 +7,11 @@ use App\Models\BouquetCustom;
 use App\Models\Order;
 use App\Models\Topping;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class OrderController extends Controller
 {
@@ -18,6 +20,33 @@ class OrderController extends Controller
         $toppings = Topping::all();
         return view('dashboard.order.index',compact('orders','toppings'));
     }
+    public function show($id)
+    {
+        $order = Order::where('id',$id)->first();
+        $toppings = Topping::all();
+        $snapToken = $order->snap_token;
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = config('midtrans.is_sanitized');
+        Config::$is3ds = config('midtrans.is_3ds');
+        if (empty($snapToken)) {
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $order->id,
+                    'gross_amount' => $order->total_price,
+                ],
+                'customer_details' => [
+                    'first_name' => Auth::user()->name,
+                    'email' => Auth::user()->email,
+                    'phone' => Auth::user()->telephone,
+                ]
+            ];
+            $snapToken = Snap::getSnapToken($params);
+            $order->snap_token = $snapToken;
+            $order->save();
+        }
+        return view('pages.order.show', compact('order', 'snapToken','toppings'));
+    }
     public function store(Request $request){
         $validator = Validator::make($request->all(),[
             'total_order' => 'required'
@@ -25,7 +54,9 @@ class OrderController extends Controller
         if($validator->fails()){
             return back()->withErrors($validator)->withInput();
         }
-        $bouquet = Bouquet::whereId($request->input('bouquet_id'))->first() ?? BouquetCustom::whereId($request->input('bouquet_custom_id'))->first();
+        $bouquet = Bouquet::whereId($request->input('bouquet_id'))
+            ->first() ?? BouquetCustom::whereId($request->input('bouquet_custom_id'))
+            ->first();
         $total_price = $bouquet->price * $request->input('total_order');
         $toppings_data = [];
         if($request->input('toppings') !== null){
@@ -41,17 +72,14 @@ class OrderController extends Controller
                 }
             }
         }
-        $dp = $total_price * 0.3;
-        $order_status = "Anda harus membayar dp sebesar Rp." . number_format($dp, 2);
         $created = Order::create([
             'id' => Str::uuid(),
             'owner_id' => auth()->user()->id,
             'bouquet_id' => $request->input('bouquet_id') ?? null,
             'bouquet_custom_id' => $request->input('bouquet_custom_id') ?? null,
             'toppings' => $toppings_data ? json_encode($toppings_data) : null,
+            'total_order' => $request->input('total_order'),
             'total_price' => $total_price,
-            'order_status' => $order_status,
-            'total_order' => $request->input('total_order')
         ]);
         if($created){
             return redirect()
@@ -59,101 +87,6 @@ class OrderController extends Controller
                 ->with('success','Order telah berhasil dibuat, silahkan bayar dp untuk proses selanjutnya');
         }else{
             return back()->with('error','Order gagal dibuat, kesalahan pada server!');
-        }
-    }
-    public function accDP($id){
-        $acc = Order::whereId($id)->update([
-            'order_status' => 'Bouquet sedang dalam proses pengerjaan.'
-        ]);
-        if($acc){
-            return back()->with('success','DP telah berhasil di acc');
-        }else{
-            return back()->with('error','Sesuatu terjadi, kesalahan pada server!');
-        }
-    }
-    public function cancelDP($id)
-    {
-        $order = Order::find($id);
-        if (!$order) {
-            return back()->with('error', 'Order tidak ditemukan');
-        }
-        if (!empty($order->dp_image)) {
-            Storage::delete('storage/' . $order->dp_image);
-        }
-        $dp = $order->total_price * 0.3;
-        $cancel = $order->update([
-            'order_status' => 'DP tidak valid, silakan upload ulang DP sebesar Rp.' .$dp."!.",
-            'dp_image' => null,
-        ]);
-        if ($cancel) {
-            return back()->with('success', 'DP telah berhasil di cancel');
-        } else {
-            return back()->with('error', 'Sesuatu terjadi, kesalahan pada server!');
-        }
-    }
-
-    public function halfFinish($id){
-        $order = Order::whereId($id)->first();
-
-        if (!$order) {
-            return back()->with('error','Pesanan tidak ditemukan.');
-        }
-
-        $dp = $order->total_price * 0.3;
-        $newTotalPrice = $order->total_price - $dp;
-
-        $finish = Order::whereId($id)->update([
-            'order_status' =>
-                'Pesanan telah selesai, silahkan lakukan pelunasan sebesar Rp.'
-                . number_format($newTotalPrice, 2),
-        ]);
-        if($finish){
-            return back()->with('success','Pesan pelunasan telah berasil disampaikan');
-        }else{
-            return back()->with('error','Sesuatu terjadi, kesalahan pada server!');
-        }
-    }
-
-    public function accRepayment($id){
-        $acc = Order::whereId($id)->update([
-            'order_status' => 'Bouquet akan segera dikirim!.'
-        ]);
-        if($acc){
-            return back()->with('success','Repayment telah berhasil di acc');
-        }else{
-            return back()->with('error','Sesuatu terjadi, kesalahan pada server!');
-        }
-    }
-    public function cancelRepayment($id){
-        $order = Order::find($id);
-        if (!$order) {
-            return back()->with('error','Order tidak ditemukan');
-        }
-        if (!empty($order->image)) {
-            Storage::delete('storage/' . $order->image);
-        }
-        $dp = $order->total_price * 0.3;
-        $newTotalPrice = $order->total_price - $dp;
-        $cancel = $order->update([
-            'order_status' => 'Pelunasan tidak valid, silakan upload ulang pelunasan sebesar Rp.'. $newTotalPrice .'!.',
-            'repayment_image' => null,
-        ]);
-        if ($cancel) {
-            return back()->with('success','Repayment telah berhasil di cancel');
-        } else {
-            return back()->with('error','Sesuatu terjadi, kesalahan pada server!');
-        }
-    }
-
-
-    public function finish($id){
-        $acc = Order::whereId($id)->update([
-            'order_status' => 'Pesanan telah selesai.'
-        ]);
-        if($acc){
-            return back()->with('success','Pesanan telah berhasil diselesaikan');
-        }else{
-            return back()->with('error','Sesuatu terjadi, kesalahan pada server!');
         }
     }
 }
