@@ -43,64 +43,12 @@
                 </td>
                 <td>{{$order->total_price}}</td>
                 <td>
-                    @if(substr($orderStatus,0,22) === "Anda harus membayar dp")
-                        Menunggu DP dari User
-                    @elseif(substr($orderStatus,0,31) === "Pesanan telah selesai, silahkan")
-                        Menunggu pelunasan dari User
-                    @elseif(substr($orderStatus,0,14) === "DP tidak valid")
-                        Menunggu DP ulang dari user
-                    @elseif(substr($orderStatus,0,21) === "Pelunasan tidak valid")
-                        Menunggu Pelunasan ulang dari user
-                    @else
-                        {{$order->order_status}}
-                    @endif
+                    {{$order->payment_status}}
                 </td>
                 <td>
-                    @if($orderStatus === "DP telah diupload, menunggu konfirmasi dari admin.")
-                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#dpModal{{$order->id}}">
-                            Show DP
-                        </button>
-                        <a href="{{route('accDP',$order->id)}}" class="btn btn-primary">Acc DP</a>
-                        <a href="{{route('cancelDP',$order->id)}}" class="btn btn-danger">Cancel DP</a>
-                    @elseif($orderStatus === "Pelunasan telah diupload, menunggu konfirmasi dari admin.")
-                        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#repaymentModal{{$order->id}}">
-                            Show Repayment
-                        </button>
-                        <a href="{{route('accRepayment',$order->id)}}" class="btn btn-primary">Acc Repayment</a>
-                        <a href="{{route('cancelRepayment',$order->id)}}" class="btn btn-danger">Cancel Repayment</a>
-                    @elseif($orderStatus === "Bouquet sedang dalam proses pengerjaan.")
-                        <a href="{{route('halfFinish',$order->id)}}" class="btn btn-warning">Buket Jadi</a>
-                    @elseif($orderStatus === "Bouquet akan segera dikirim!.")
-                        <a href="{{route('finish',$order->id)}}" class="btn btn-success">Selesai</a>
-                    @endif
+
                 </td>
             </tr>
-            <div class="modal fade" id="dpModal{{$order->id}}" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="imageModalLabel"> DP Image</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center">
-                            <img src="/storage/{{$order->dp_image}}" class="img-fluid" alt=" DP Image">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="repaymentModal{{$order->id}}" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="imageModalLabel">Repayment Image</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-center">
-                            <img src="/storage/{{$order->repayment_image}}" class="img-fluid" alt="Repayment Image">
-                        </div>
-                    </div>
-                </div>
-            </div>
         @endforeach
         </tbody>
     </table>

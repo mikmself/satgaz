@@ -12,7 +12,6 @@ use App\Http\Controllers\CartController;
 use \Illuminate\Support\Facades\Auth;
 
 Auth::routes(['verify' => true]);
-
 Route::middleware('verified')->group(function () {
     Route::get('/bouquet-custom', [HomeController::class, 'indexBouquetCustom'])->name('index-bouquet-custom');
     Route::post('/create-order', [HomeController::class, 'createOrder'])->name('create-order');
@@ -20,11 +19,7 @@ Route::middleware('verified')->group(function () {
     Route::post('/order-bouquet-custom', [HomeController::class, 'createOrderBouquetCustom'])->name('order-bouquet-custom');
     Route::get('/notifikasi', [HomeController::class, 'indexNotifikasi'])->name('index-notifikasi');
     Route::get('/order', [HomeController::class, 'indexOrder'])->name('index-order');
-    Route::post('/pay-dp', [HomeController::class, 'payDP'])->name('pay-dp');
-    Route::post('/pay-repayment', [HomeController::class, 'payRepayment'])->name('pay-repayment');
-    Route::post('/store-dp', [HomeController::class, 'storeDP'])->name('store-dp');
-    Route::post('/store-repayment', [HomeController::class, 'storeRepayment'])->name('store-repayment');
-    Route::get('/finish/{id}', [HomeController::class, 'finish'])->name('finish-order');
+    Route::get('/order/detail/{id}',[OrderController::class,'show'])->name('detail-order');
 
     Route::prefix('keranjang')->group(function (){
         Route::get('/',[CartController::class,'index'])->name('index-cart');
@@ -62,12 +57,6 @@ Route::prefix('/admin/dashboard')->group(function () {
         });
         Route::prefix('orders')->group(function () {
             Route::get('/', [OrderController::class, 'index'])->name('index-order-admin');
-            Route::get('/acc-dp/{id}', [OrderController::class, 'accDP'])->name('accDP');
-            Route::get('/cancel-dp/{id}', [OrderController::class, 'cancelDP'])->name('cancelDP');
-            Route::get('/acc-repayment/{id}', [OrderController::class, 'accRepayment'])->name('accRepayment');
-            Route::get('/cancel-repayment/{id}', [OrderController::class, 'cancelRepayment'])->name('cancelRepayment');
-            Route::get('/half-finish/{id}', [OrderController::class, 'halfFinish'])->name('halfFinish');
-            Route::get('/finish/{id}', [OrderController::class, 'finish'])->name('finish');
         });
 
         Route::prefix('toppings')->group(function () {

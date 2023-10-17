@@ -17,7 +17,7 @@
         @php($i = 1)
         @foreach($orders as $order)
             <tr>
-                <th scope="row">{{$i}}</th>1
+                <th scope="row">{{$i}}</th>
                 <td>
                     @isset($order->bouquet->image)
                         <img src="{{ asset('storage/' . $order->bouquet->image) }}" alt="{{ $order->bouquet->name}}" width="150">
@@ -45,26 +45,7 @@
                 <td>{{$order->total_price}}</td>
                 <td>{{$order->order_status}}</td>
                 <td>
-                    @php($orderStatus = $order->order_status)
-                    @if(substr($orderStatus,0,22) === "Anda harus membayar dp" || substr($orderStatus,0,14) === "DP tidak valid")
-                        <form action="{{route('pay-dp')}}" method="post">
-                            @csrf
-                            <input type="hidden" name="id" value="{{$order->id}}">
-                            <button type="submit" class="btn btn-primary">Pay DP</button>
-                        </form>
-                    @elseif($orderStatus === "Bouquet sedang dalam proses pengerjaan.")
-                    @elseif(substr($orderStatus,0,31) === "Pesanan telah selesai, silahkan" || substr($orderStatus,0,21) === "Pelunasan tidak valid")
-                        <form action="{{route('pay-repayment')}}" method="post">
-                            @csrf
-                            <input type="hidden" name="id" value="{{$order->id}}">
-                            <button type="submit" class="btn btn-primary">Pay Repaymet</button>
-                        </form>
-                    @elseif($orderStatus === "Bouquet akan segera dikirim!.")
-                        <a href="{{route('finish-order',$order->id)}}" class="btn btn-success">Diterima</a>
-                    @elseif($orderStatus === "Pesanan telah selesai.")
-                    @else
-
-                    @endif
+                    <a href="{{route('detail-order',$order->id)}}" class="btn btn-success">Detail Order</a>
                 </td>
             </tr>
             @php($i++)

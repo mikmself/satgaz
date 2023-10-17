@@ -25,7 +25,9 @@ return new class extends Migration
             $table->integer('total_order');
             $table->string('dp_image')->nullable();
             $table->string('repayment_image')->nullable();
-            $table->string('order_status');
+            $table->string('order_status')->nullable();
+            $table->enum('payment_status',['unpaid','paid','pending','cancel','expired'])->default('unpaid');
+            $table->string('snap_token', 36)->nullable();
             $table->timestamps();
         });
     }
