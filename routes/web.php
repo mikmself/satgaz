@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\DiscountController;
 use \Illuminate\Support\Facades\Auth;
 
 Auth::routes(['verify' => true]);
@@ -20,6 +21,7 @@ Route::middleware('verified')->group(function () {
     Route::get('/notifikasi', [HomeController::class, 'indexNotifikasi'])->name('index-notifikasi');
     Route::get('/order', [HomeController::class, 'indexOrder'])->name('index-order');
     Route::get('/order/detail/{id}',[OrderController::class,'show'])->name('detail-order');
+    Route::post('/apply-discount',[OrderController::class,'applyDiscount'])->name('apply-discount');
 
     Route::prefix('keranjang')->group(function (){
         Route::get('/',[CartController::class,'index'])->name('index-cart');
@@ -55,6 +57,16 @@ Route::prefix('/admin/dashboard')->group(function () {
             Route::patch('/update/{id}', [NotificationController::class, 'update'])->name('update-notification');
             Route::delete('/delete/{id}', [NotificationController::class, 'destroy'])->name('destroy-notification');
         });
+
+        Route::prefix('discount')->group(function () {
+            Route::get('/', [DiscountController::class, 'index'])->name('index-discount');
+            Route::get('/create', [DiscountController::class, 'create'])->name('create-discount');
+            Route::post('/store', [DiscountController::class, 'store'])->name('store-discount');
+            Route::get('/edit/{id}', [DiscountController::class, 'edit'])->name('edit-discount');
+            Route::patch('/update/{id}', [DiscountController::class, 'update'])->name('update-discount');
+            Route::delete('/delete/{id}', [DiscountController::class, 'destroy'])->name('destroy-discount');
+        });
+
         Route::prefix('orders')->group(function () {
             Route::get('/', [OrderController::class, 'index'])->name('index-order-admin');
         });
