@@ -45,10 +45,41 @@
                 <td>{{$order->total_price}}</td>
                 <td>{{$order->order_status}}</td>
                 <td>
+                    @if($order->discount === null)
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#orderForm{{$order->id}}">
+                            Pakai Diskon
+                        </button>
+                    @endif
                     <a href="{{route('detail-order',$order->id)}}" class="btn btn-success">Detail Order</a>
                 </td>
             </tr>
             @php($i++)
+            <div class="modal fade" id="orderForm{{$order->id}}" tabindex="-1" aria-labelledby="orderForm{{$order->id}}Label" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="orderForm{{$order->id}}Label">Diskon</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="{{route('apply-discount')}}" method="post">
+                                @csrf
+                                <div class="row">
+                                    <input type="hidden" name="order_id" value="{{$order->id}}">
+                                    <div class="mb-3 mt-3">
+                                        <label for="code" class="form-label">Code</label>
+                                        <input type="text" class="form-control" id="code" name="code">
+                                        <button class="btn btn-primary mt-3">Submit</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
         @endforeach
         </tbody>
     </table>

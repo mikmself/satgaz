@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('order_status')->nullable();
             $table->enum('payment_status',['unpaid','paid','pending','cancel','expired'])->default('unpaid');
             $table->string('snap_token', 36)->nullable();
+            $table->string('discount')->nullable();
             $table->timestamps();
         });
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bouquet;
 use App\Models\BouquetCustom;
+use App\Models\Discount;
 use App\Models\Order;
 use App\Models\Topping;
 use Illuminate\Http\Request;
@@ -87,6 +88,30 @@ class OrderController extends Controller
                 ->with('success','Order telah berhasil dibuat, silahkan bayar dp untuk proses selanjutnya');
         }else{
             return back()->with('error','Order gagal dibuat, kesalahan pada server!');
+        }
+    }
+
+    public function applyDiscount(Request $request){
+        $order = Order::whereId($request->order_id)->first();
+        $discount = Discount::where('code',$request->input('code'))->first();
+        if(isset($discount)){
+            $total_discount = $order->total_price * ($discount->discount / 100);
+            $new_total_price = $order->total_price - $total_discount;
+            $order->update([
+                'discount' => $discount->code,
+                'total_price' => $new_total_price
+            ]);
+            if($discount->limit !== null){
+                if($discount->limit < 1){
+                    return back()->with('error','Kode diskon sudah melebihi limit');
+                }
+                $discount->update([
+                    'limit' => $discount->limit - 1
+                ]);
+            }
+            return back()->with('success','Kode diskon berhasil dipakai');
+        }else{
+            return back()->with('error','Kode diskon tidak tersedia');
         }
     }
 }
