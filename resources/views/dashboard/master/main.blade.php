@@ -99,6 +99,12 @@
                                 <span>Notification</span>
                             </a>
                         </li>
+                        <li class="sidebar-item">
+                            <a href="{{route('index-discount')}}" class='sidebar-link'>
+                                <i class="bi bi-grid-fill"></i>
+                                <span>Discount</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -126,6 +132,12 @@
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="alert alert-danger">
+                        {{ session('error') }}
                     </div>
                 @endif
 

@@ -36,4 +36,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function bouquetCustom(){
         return $this->hasMany(BouquetCustom::class);
     }
+
+    public function discount(){
+        return $this->hasMany(Discount::class,'admin_id');
+    }
 }
